@@ -1,12 +1,11 @@
 import Roki
-from picamera2 import Picamera2
+from Soccer.Vision.camera import Camera
 from time import time
 import numpy as np
 import cv2
 
-picam2 = Picamera2(camera_num=0)
-picam2.configure(picam2.create_preview_configuration(main={"format": 'RGB888', "size": (1600, 1300)}, lores={"format": 'YUV420', "size": (800, 650)})) 
-picam2.start()
+camera = Camera()
+camera.start(neural=True)
 
 fourcc = cv2.VideoWriter_fourcc(*'MJPG')
 out = cv2.VideoWriter('/home/pi/Desktop/output2.avi', fourcc, 20.0, (640,  640))
@@ -88,11 +87,7 @@ def letterbox(img, size=(640, 640), color=(114, 114, 114), auto=True, scaleFill=
 counter = 0
 start = time()
 while True:
-    request = picam2.capture_request()
-    frame = request.make_array("lores")  
-    request.release()
-    frame = cv2.cvtColor(frame, cv2.COLOR_YUV420p2RGB)
-    frame = frame[0:650,0:800,0:3]
+    frame, frame_number = camera.snapshot()
     frame = letterbox(frame)
     out.write(frame)
     cv2.imshow("Output", frame)
@@ -101,6 +96,7 @@ while True:
     if key == ord('q'):
         break
 time_elapsed = time() - start
+camera.stop()
 out.release()
 cv2.destroyAllWindows()
 print('fps = ', counter/ time_elapsed)

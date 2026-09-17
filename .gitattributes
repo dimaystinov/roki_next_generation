@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Unified diff context prefixes intentionally precede tabs and blank lines.
+buildroot/*.patch -whitespace

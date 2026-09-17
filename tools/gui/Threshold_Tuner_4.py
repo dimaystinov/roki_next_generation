@@ -264,7 +264,7 @@ class ThresholdTunerWindow(QtWidgets.QMainWindow):
         self.thresholds["exposure"] = new_exposure
         self.ui.lineEdit_Exposure.setText(str(new_exposure))
         if self.camera:
-            self.camera.picam2.set_controls({"ExposureTime": new_exposure})
+            self.camera.set_controls({"ExposureTime": new_exposure})
         self.slider_event.set()
 
     def on_gain_changed(self):
@@ -272,25 +272,25 @@ class ThresholdTunerWindow(QtWidgets.QMainWindow):
         self.thresholds["gain"] = new_gain
         self.ui.lineEdit_Gain.setText(str(new_gain))
         if self.camera:
-            self.camera.picam2.set_controls({"AnalogueGain": new_gain})
+            self.camera.set_controls({"AnalogueGain": new_gain})
         self.slider_event.set()
 
     def on_auto_exposure_off(self):
         if not self.camera:
             print("Camera is not started")
             return
-        self.camera.picam2.set_controls({"AeEnable": False})
+        self.camera.set_controls({"AeEnable": False})
         self.ui.actionAutoExposure_ON.setChecked(False)
 
     def on_auto_exposure_on(self):
         if not self.camera:
             print("Camera is not started")
             return
-        self.camera.picam2.set_controls({"AeEnable": True})
-        self.camera.picam2.set_controls({"AeExposureMode": controls.AeExposureModeEnum.Short})
+        self.camera.set_controls({"AeEnable": True})
+        self.camera.set_controls({"AeExposureMode": controls.AeExposureModeEnum.Short})
         time.sleep(1)
-        self.thresholds["exposure"] = self.camera.picam2.capture_metadata()["ExposureTime"]
-        self.thresholds["gain"] = self.camera.picam2.capture_metadata()["AnalogueGain"]
+        self.thresholds["exposure"] = self.camera.capture_metadata()["ExposureTime"]
+        self.thresholds["gain"] = self.camera.capture_metadata()["AnalogueGain"]
         self.ui.lineEdit_Exposure.setText(str(self.thresholds["exposure"]))
         self.ui.lineEdit_Gain.setText(str(self.thresholds["gain"]))
         self.ui.actionAutoExposure_OFF.setChecked(False)

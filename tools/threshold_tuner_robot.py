@@ -80,11 +80,11 @@ class ThresholdTunerState:
             if "exposure" in payload:
                 self.thresholds["exposure"] = int(payload["exposure"])
                 if self.camera:
-                    self.camera.picam2.set_controls({"ExposureTime": int(payload["exposure"])})
+                    self.camera.set_controls({"ExposureTime": int(payload["exposure"])})
             if "gain" in payload:
                 self.thresholds["gain"] = float(payload["gain"])
                 if self.camera:
-                    self.camera.picam2.set_controls({"AnalogueGain": float(payload["gain"])})
+                    self.camera.set_controls({"AnalogueGain": float(payload["gain"])})
             if payload.get("save"):
                 self.save_locked()
         return self.snapshot_state()

@@ -506,7 +506,6 @@ class Player():
             if self.glob.camera_down_Flag == True: self.glob.camera_reset()
                     #print('Camera resetting')
                     #self.glob.camera_down_Flag = False
-                    #self.glob.vision.camera.picam2.close()
                     #self.glob.vision.event.set()
                     #new_stm_channel  = self.STM_channel(self.glob)
                     #self.glob.stm_channel = new_stm_channel
@@ -853,7 +852,6 @@ class Player():
             if self.glob.camera_down_Flag == True: self.glob.camera_reset()
                     #print('Camera resetting')
                     #self.glob.camera_down_Flag = False
-                    #self.glob.vision.camera.picam2.close()
                     #self.glob.vision.event.set()
                     #new_stm_channel  = self.STM_channel(self.glob)
                     #self.glob.stm_channel = new_stm_channel
@@ -2068,18 +2066,7 @@ class Player():
 
             if self.glob.SIMULATION == 5:
                 if self.glob.camera_down_Flag == True:
-                    print('Camera resetting')
-                    self.glob.camera_down_Flag = False
-                    self.glob.vision.camera.picam2.close()
-                    #self.glob.vision.event.set()
-                    new_stm_channel  = self.STM_channel(self.glob)
-                    self.glob.stm_channel = new_stm_channel
-                    self.glob.rcb = self.glob.stm_channel.rcb
-                    new_vision = self.Vision_RPI(self.glob)
-                    self.glob.vision = new_vision
-                    self.motion.vision = self.glob.vision
-                    self.local.vision = self.glob.vision
-                    #self.glob.vision.camera_thread.start()
+                    self.glob.camera_reset()
 
     def marathon_main_cycle(self):
         if self.glob.SIMULATION == 5:

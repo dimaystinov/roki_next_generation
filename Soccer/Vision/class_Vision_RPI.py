@@ -25,7 +25,6 @@ class Vision_RPI(Vision_General):
         ok = self.glob.stm_channel.mb.SetIMUStrobeOffset(0)   # the best value of strobe offset is 9 for 30fps and 5 for 60fps
         ok = self.glob.stm_channel.mb.ConfigureStrobeFilter(CAMERA_FRAME_DURATION_US//1000, 4)
         ok = self.glob.stm_channel.mb.ResetStrobeContainers()
-        #self.camera.start(frame_duration_us = CAMERA_FRAME_DURATION_US)
         self.camera.start(exposure = self.TH['exposure'], gain = self.TH['gain'], frame_duration_us = CAMERA_FRAME_DURATION_US, neural = self.glob.neural_vision)
         self.led = Led()
         self.camera_sleep = 0.1

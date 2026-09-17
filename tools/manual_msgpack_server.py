@@ -79,18 +79,18 @@ class UdpJpegCamera:
         return self.thread is not None and self.thread.is_alive()
 
     def _run(self, host, port):
-        picam2 = None
+        camera = None
         pipeline = None
         try:
             import gi
             import numpy as np
-            from picamera2 import Picamera2
+            from Soccer.Vision.camera import Camera
 
             gi.require_version("Gst", "1.0")
             from gi.repository import Gst
 
             Gst.init(None)
-            # Picamera2/libcamera RGB888 is exposed to Python as a BGR array.
+            # The camera adapter supplies ISP-produced BGR pixels directly.
             caps = (
                 f"video/x-raw,format=BGR,width={self.width},height={self.height},"
                 f"framerate={self._fps_caps()}"
@@ -105,28 +105,24 @@ class UdpJpegCamera:
             pipeline = Gst.parse_launch(launch)
             appsrc = pipeline.get_child_by_name("source")
 
-            picam2 = Picamera2(camera_num=0)
-            controls = {}
-            if self.fps > 0:
-                frame_us = int(1_000_000 / self.fps)
-                controls["FrameDurationLimits"] = (frame_us, frame_us)
-            raw = None
+            camera = Camera()
+            camera.camera_lores = (self.width, self.height)
+            sensor = {}
             if self.raw_format and self.raw_width and self.raw_height:
-                raw = {"format": self.raw_format, "size": (self.raw_width, self.raw_height)}
-            config = picam2.create_video_configuration(
-                main={"format": "RGB888", "size": (self.width, self.height)},
-                raw=raw,
-                display=None,
-                controls=controls,
-            )
-            picam2.configure(config)
-            picam2.start()
+                import re
+                match = re.search(r"(\d+)", self.raw_format)
+                if match is None:
+                    raise ValueError("Sensor format must specify its bit depth")
+                sensor = {"sensor_size": (self.raw_width, self.raw_height),
+                          "sensor_bit_depth": int(match.group(1))}
+            frame_us = int(1_000_000 / self.fps) if self.fps > 0 else None
+            camera.start(frame_duration_us=frame_us, neural=True, **sensor)
             pipeline.set_state(Gst.State.PLAYING)
             print(f"Manual UDP stream: RTP/JPEG to {host}:{port}", flush=True)
 
             base_time_ns = time.monotonic_ns()
             while not self.stop_event.is_set():
-                frame = picam2.capture_array("main")[:, :, :3]
+                frame, _ = camera.snapshot()
                 data = np.ascontiguousarray(frame)
                 buffer = Gst.Buffer.new_allocate(None, data.nbytes, None)
                 buffer.fill(0, data.tobytes())
@@ -148,10 +144,9 @@ class UdpJpegCamera:
                     pipeline.set_state(Gst.State.NULL)
                 except Exception:
                     pass
-            if picam2 is not None:
+            if camera is not None:
                 try:
-                    picam2.stop()
-                    picam2.close()
+                    camera.stop()
                 except Exception:
                     pass
 
@@ -266,19 +261,16 @@ class ManualRuntime:
         try:
             import re
             import libcamera
-            import picamera2.formats as formats
-            from picamera2 import Picamera2
-
-            picam2 = Picamera2(camera_num=0)
+            manager = libcamera.CameraManager.singleton()
+            camera = manager.cameras[0]
+            camera.acquire()
             try:
                 modes = []
                 index = 0
-                raw_config = picam2.camera.generate_configuration([libcamera.StreamRole.Raw])
+                raw_config = camera.generate_configuration([libcamera.StreamRole.Raw])
                 raw_formats = raw_config.at(0).formats
                 for pix in raw_formats.pixel_formats:
                     fmt = str(pix)
-                    if not formats.is_raw(fmt):
-                        continue
                     match = re.search(r"(\d+)", fmt)
                     bit_depth = int(match.group(1)) if match else 0
                     for size in raw_formats.sizes(pix):
@@ -297,7 +289,7 @@ class ManualRuntime:
                     self.camera_modes = modes
                     return modes
             finally:
-                picam2.close()
+                camera.release()
         except Exception as exc:
             print(f"light camera mode detection failed: {type(exc).__name__}: {exc}", flush=True)
         fallback = [

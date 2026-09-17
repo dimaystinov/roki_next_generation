@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.20)
+project(ncs2_offline_compiler LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(OpenVINO 2022.3.2 EXACT REQUIRED COMPONENTS Runtime)
+add_executable(compile_ball compile_ball.cpp)
+target_link_libraries(compile_ball PRIVATE openvino::runtime)

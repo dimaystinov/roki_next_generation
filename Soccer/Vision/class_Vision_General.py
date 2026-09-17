@@ -128,6 +128,9 @@ class Vision_General:
             camera_result, img, pitch, roll, yaw, pan = self.snapshot()
             if camera_result:
                 ball_column, ball_row = self.glob.neural.object_detect_single(img, "ball")
+                if not self.glob.neural.is_ready():
+                    found, course, distance, _ = self.seek_Ball_In_Frame(with_Localization)
+                    return found, course, distance
                 if ball_column or ball_row: 
                     if self.glob.event_type == "FIRA":
                         self.camera_elevation = 410
@@ -162,6 +165,8 @@ class Vision_General:
                 camera_result, img, pitch, roll, yaw, pan = self.snapshot()
                 if camera_result:
                     ball_column, ball_row = self.glob.neural.ball_detect_single(img)
+                    if not self.glob.neural.is_ready():
+                        return self.detect_Ball_Speed()
                     if ball_column or ball_row: 
                         result, course, distance = self.get_course_and_distance_to_ball(ball_column, ball_row)
                         if result:
@@ -373,7 +378,7 @@ class Vision_General:
         #if result:
             #result, img1, self.pitch, self.roll, yaw, pan = self.snapshot()
         img1, frame_number = self.camera.snapshot()
-        if frame_number != 0:
+        if img1 is not None:
             result = True
             cx, cy = self.glob.neural.object_detect_single(img1, "basket")
             displacement = self.glob.params["CAMERA_HORIZONTAL_RESOLUTION"]/2 - cx
@@ -418,7 +423,7 @@ class Vision_General:
         #if result:
             #result, img1, self.pitch, self.roll, yaw, pan = self.snapshot()
         img1, frame_number = self.camera.snapshot()
-        if frame_number != 0:
+        if img1 is not None:
             result = True
             img = Image(img1, copy=False)
             #self.display_camera_image(self.image, window = 'Original')

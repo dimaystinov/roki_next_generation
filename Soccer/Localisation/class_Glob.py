@@ -157,23 +157,32 @@ class Glob:
             json.dump(report, f)
 
     def neural_vision_enable(self):
-        from Soccer.Vision.neuro_client import Neural
+        from Soccer.Vision.neural import Neural
+        if self.neural is not None:
+            self.neural.close()
         self.neural = Neural(self.role, self.display)
 
     def camera_reset(self):
         print('Camera resetting')
         os.system("espeak -ven-m1 -a"+ '200' + " " + "'Camera resetting'")
-        self.camera_down_Flag = False
-        self.vision.camera.picam2.close()
-        self.vision.event.set()
-        new_stm_channel  = self.STM_channel_class(self)
-        self.stm_channel = new_stm_channel
-        self.rcb = self.stm_channel.rcb
+        # Finish the old vision consumer before resetting the shared pipeline.
+        event = getattr(self.vision, 'event', None)
+        if event is not None:
+            event.set()
+        camera_thread = getattr(self.vision, 'camera_thread', None)
+        if camera_thread is not None and camera_thread.is_alive():
+            camera_thread.join(timeout=4)
+            if camera_thread.is_alive():
+                raise RuntimeError('Old vision thread did not stop before camera reset')
+        self.camera.stop()
+        # Vision_RPI resets the existing STM strobe history before camera.start.
+        # Keep the same channel referenced by motion and localisation.
         new_vision = self.Vision_RPI(self)
-        #self.camera = self.Camera()
         self.vision = new_vision
         self.motion.vision = self.vision
-        self.local.vision = self.vision
+        if self.local is not None:
+            self.local.vision = self.vision
+        self.camera_down_Flag = False
 
 class Variables_4_Walk:
     def __init__(self):

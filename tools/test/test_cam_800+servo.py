@@ -60,7 +60,6 @@ frame_duration_us = 16700
 # stm_channel.mb.ResetStrobeContainers()
 # camera.start(frame_duration_us=frame_duration_us)
 #time.sleep(1)
-#camera.picam2.set_controls({"FrameDurationLimits": (16700, 16700)})
 
 glob = Glob(5, '/home/pi/Desktop/Roki_2_Soccer/')
 vision = Vision(glob)
@@ -128,4 +127,3 @@ print('Rate : ', int(cycles/ time_elapsed), ' FPS')
 glob.stm_channel.mb.ResetBodyQueue()
 cv2.destroyAllWindows()
 vision.camera.stop()
-#print('total number of frames in camera buffer: ', len(camera.frame_number_counter.list_of_Timestamps) + camera.frame_number_counter.head_of_Timestamps)

@@ -64,7 +64,7 @@ def track_from_vision(vision, size, side_shift, aruco_angle_horizontal, distance
     start_time = time.perf_counter()
     while not stopFlag.value:
         frame, frame_number = vision.camera.snapshot()
-        if frame_number == 0:
+        if frame is None:
             continue
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         image, size.value, side_shift.value, aruco_angle_horizontal.value, distance.value = detect_aruco_markers(gray, led, ID)
@@ -81,29 +81,17 @@ def track_from_vision(vision, size, side_shift, aruco_angle_horizontal, distance
             break
 
 def standalone_camera_loop(ID=88):
-    from picamera2 import Picamera2
+    from Soccer.Vision.camera import Camera
     from libcamera import controls
 
     led = Led()
-    picam2 = Picamera2(camera_num=0)
-    picam2.configure(picam2.create_video_configuration(
-        main={"format": "RGB888", "size": (800, 650)},
-        display=None,
-    ))
-    picam2.set_controls({"AeExposureMode": controls.AeExposureModeEnum.Short})
-    picam2.start()
-    picam2.set_controls({"ExposureTime": 500})
-    picam2.set_controls({"AnalogueGain": 8.0})
-    time.sleep(0.5)
-    print("exposure : ", picam2.capture_metadata()["ExposureTime"])
-    print("gain : ", picam2.capture_metadata()["AnalogueGain"])
+    camera = Camera()
+    camera.start(exposure=500, gain=8.0)
     count = 0
     start_time = time.perf_counter()
     try:
         while True:
-            request = picam2.capture_request()
-            image = request.make_array("main")
-            request.release()
+            image, frame_number = camera.snapshot()
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             image, size, side_shift, aruco_angle_horizontal, distance = detect_aruco_markers(image, led, ID)
             cv2.imshow("ARUCO", image)
@@ -128,7 +116,7 @@ def standalone_camera_loop(ID=88):
             else:
                 print('Go Straight')
     finally:
-        picam2.stop()
+        camera.stop()
         cv2.destroyAllWindows()
 
 def evaluate_distance(corners):

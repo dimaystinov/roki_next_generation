@@ -34,7 +34,7 @@ def track_from_vision(vision, size, side_shift, stopFlag):
     start_time = time.perf_counter()
     while not stopFlag.value:
         frame, frame_number = vision.camera.snapshot()
-        if frame_number == 0:
+        if frame is None:
             continue
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         image, size.value, side_shift.value = detect_aruco_markers(gray, led)
@@ -57,7 +57,7 @@ def track_order_from_vision(vision, turn_shift, stopFlag):
     start_time = time.perf_counter()
     while not stopFlag.value:
         frame, frame_number = vision.camera.snapshot()
-        if frame_number == 0:
+        if frame is None:
             continue
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         image, size, side_shift = detect_aruco_markers(gray, led)
@@ -78,24 +78,18 @@ def track_order_from_vision(vision, turn_shift, stopFlag):
             start_time = time.perf_counter()
 
 def standalone_camera_loop():
-    from picamera2 import Picamera2
+    from Soccer.Vision.camera import Camera
     from libcamera import controls
 
     led = Led()
-    picam2 = Picamera2(camera_num=0)
-    picam2.configure(picam2.create_video_configuration(
-        main={"format": "RGB888", "size": (800, 650)},
-        display=None,
-    ))
-    picam2.set_controls({"AeExposureMode": controls.AeExposureModeEnum.Short})
-    picam2.start()
+    camera = Camera()
+    camera.start()
+    camera.set_controls({"AeExposureMode": controls.AeExposureModeEnum.Short})
     count = 0
     start_time = time.perf_counter()
     try:
         while True:
-            request = picam2.capture_request()
-            image = request.make_array("main")
-            request.release()
+            image, frame_number = camera.snapshot()
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             image, size, side_shift = detect_aruco_markers(image, led)
             cv2.imshow("Line", image)
@@ -117,7 +111,7 @@ def standalone_camera_loop():
             else:
                 print('Go Straight')
     finally:
-        picam2.stop()
+        camera.stop()
         cv2.destroyAllWindows()
 
 if __name__== "__main__":

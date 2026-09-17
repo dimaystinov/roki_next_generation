@@ -21,7 +21,9 @@ class STM_channel():
         self.zubr = Roki.Zubr(self.mb)
 
     def read_quaternion_from_imu_in_head(self, frame_number = None):
-        if frame_number != None and self.glob.camera_streaming :
+        # A supplied Unicam sequence identifies the image, independently of
+        # whether vision is running in a background thread. Zero is valid.
+        if frame_number is not None:
             ok, fr = self.mb.GetIMUFrame(frame_number)
         else:
             ok, fr = self.mb.GetIMULatest()
@@ -29,9 +31,11 @@ class STM_channel():
             print(self.mb.GetError())
             print ('strobe width :', self.mb.GetStrobeWidth())
             ok, info = self.mb.GetIMUContainerInfo()
-            print("Imu info: " + "  First: " + str(info.First), "  NumAv: " + str(info.NumAv), "  MaxFr: " + str(info.MaxFrames))
             print('error : ', 'frame_number = ', frame_number)
-            if frame_number < info.First or frame_number >= info.First + info.NumAv: self.glob.camera_down_Flag = True
+            if ok:
+                print("Imu info: " + "  First: " + str(info.First), "  NumAv: " + str(info.NumAv), "  MaxFr: " + str(info.MaxFrames))
+                if frame_number is not None and not (info.First <= frame_number < info.First + info.NumAv):
+                    self.glob.camera_down_Flag = True
             return (0,0,0,0,0,0)
         # try:
         #     if frame_number != None:

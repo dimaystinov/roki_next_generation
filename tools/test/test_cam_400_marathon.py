@@ -58,8 +58,6 @@ frame_duration_us = 16700
 # stm_channel.mb.ConfigureStrobeFilter(frame_duration_us//1000, 4)
 # stm_channel.mb.ResetStrobeContainers()
 # camera.start(frame_duration_us=frame_duration_us)
-# camera.picam2.set_controls({"ExposureTime": threshold_Dict['exposure']})
-# camera.picam2.set_controls({"AnalogueGain": threshold_Dict['gain']})
 
 glob = Glob(5, '/home/pi/Desktop/Roki_2_Soccer/')
 glob.camera.camera_lores = (1600, 1300)
