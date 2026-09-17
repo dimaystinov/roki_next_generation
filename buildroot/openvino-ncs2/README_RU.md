@@ -1,5 +1,9 @@
 # NCS2 — плагин для OpenVINO 2026.0
 
+> Этот документ описывает исходный standalone-комплект для **2026.0**.
+> Для нового образа доступен [интегрированный форк OpenVINO 2026.5](https://github.com/dimaystinov/openvino).
+> Runtime и плагин разных версий не смешивать; см. [главную инструкцию](https://github.com/dimaystinov/roki_next_generation/tree/main/buildroot).
+
 Реализован импорт статических MYRIAD `.blob` формата 6.0 и выполнение через
 `mvnc → XLink → libusb → NCS2`. Новый `openvino.Core` и новый Python работают
 в одном процессе инференса. Приложение робота запускает его как приватный

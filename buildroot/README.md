@@ -45,6 +45,17 @@ python3 -c 'import libcamera; print(libcamera.controls.rpi.UnicamSequence)'
 
 ## 2. OpenVINO и нативный NCS2-плагин
 
+**Основной вариант:** [форк OpenVINO](https://github.com/dimaystinov/openvino)
+на базе 2026.5.0. В нём есть исходники транспорта и плагина, переключатель
+`ENABLE_INTEL_MYRIAD=ON`, штатная регистрация и упаковка MYRIAD.
+Собирать runtime, плагин и Python bindings из одного checkout форка.
+См. [README_NCS2_RU.md](https://github.com/dimaystinov/openvino/blob/master/README_NCS2_RU.md).
+Модель, firmware и патч libcamera брать из этого каталога.
+
+**Альтернатива — прежний standalone-комплект:** следующие команды и каталог
+`openvino-ncs2/` относятся строго к OpenVINO 2026.0.0. Они сохранены как
+проверенная исходная реализация; не собирать этот плагин против 2026.5.
+
 Runtime и headers: OpenVINO **2026.0.0**, commit
 `c6d6a13a8863f576b627dabcda0c40b090638f9e`.
 Исходники транспорта: OpenVINO **2022.3.2**, commit

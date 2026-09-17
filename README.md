@@ -118,6 +118,19 @@ requests, отображения и камеру.
 
 ### Нативный плагин
 
+Основной путь интеграции теперь — [форк OpenVINO](https://github.com/dimaystinov/openvino),
+собранный вместе с плагином из `src/plugins/intel_myriad/`:
+`-DENABLE_INTEL_MYRIAD=ON`. Его база — OpenVINO **2026.5.0**;
+[инструкция сборки](https://github.com/dimaystinov/openvino/blob/master/README_NCS2_RU.md).
+Новый runtime и его Python bindings проверяются вместе. `MYRIAD` регистрируется
+автоматически; приложение не пытается зарегистрировать его повторно.
+При явно заданном `ROKI_NCS2_PLUGIN` приложение создаёт Core с отдельной
+XML-конфигурацией выбранной библиотеки, исключая конфликт регистраций.
+
+Ниже сохранено описание **первого standalone-комплекта для 2026.0**.
+Его нельзя смешивать с runtime 2026.5; для форка плагин собирается из самого
+форка, а не из старого `buildroot/openvino-ncs2/`.
+
 [`buildroot/openvino-ncs2/`](buildroot/openvino-ncs2/README_RU.md) содержит
 исходники плагина, который регистрируется как `MYRIAD` в OpenVINO **2026.0.0**.
 Из OpenVINO **2022.3.2** используются исходники транспортных mvnc/XLink;
@@ -176,7 +189,7 @@ FP32 `[1,25200,7]`. BGR → RGB, деление на 255 и преобразов
 | Переменная окружения | По умолчанию |
 |---|---|
 | `ROKI_NCS2_BLOB` | `/usr/share/roki/ball.blob` |
-| `ROKI_NCS2_PLUGIN` | `libopenvino_ncs2_plugin.so` |
+| `ROKI_NCS2_PLUGIN` | Автоматический MYRIAD; при отсутствии регистрации — `libopenvino_ncs2_plugin.so` |
 | `NCS2_FIRMWARE_DIR` | Рекомендуемый путь образа: `/usr/share/roki/firmware` |
 | `ROKI_NCS2_TIMEOUT` | 1 с на ответ inference |
 | `ROKI_NCS2_STARTUP_TIMEOUT` | 15 с на готовность ребёнка |
@@ -263,7 +276,7 @@ GStreamer core, `appsrc`, `videoconvert`, `v4l2jpegenc`, `rtpjpegpay`, `udpsink`
 
 На голове нужны Python образа, numpy, OpenCV, прямые Python bindings libcamera
 с патчем и аппаратные bindings `Roki` для STM. Для NCS2 дополнительно нужны
-OpenVINO 2026.0.0 под этот Python, собранный для целевого ABI плагин, libusb
+OpenVINO из форка с его плагином (либо согласованный standalone 2026.0), libusb
 и USB firmware. Для ручного управления нужны msgpack и компоненты GStreamer;
 для существующих кнопок запуска — evdev. Нельзя переносить собранную на macOS
 библиотеку в Linux-образ; используются target toolchain и staging sysroot.
@@ -297,7 +310,7 @@ USB firmware загружается плагином в NCS2 при открыт
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q tests
 ```
 
-Текущий результат: **57 passed, 10 xfailed**. Камера и аппаратный OpenVINO API
+Текущий результат: **60 passed, 10 xfailed**. Камера и аппаратный OpenVINO API
 в этих тестах заменены контролируемыми реализациями. Для проверки изоляции
 запускаются настоящие дочерние Python-процессы с ошибками/зависаниями/выходом.
 Чтобы увидеть ожидаемые дефекты локализации как ошибки:

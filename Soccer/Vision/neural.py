@@ -53,6 +53,29 @@ def detection_center(predictions, label, transform, frame_shape):
     return 0, 0
 
 
+def create_ncs2_core(plugin_path=None):
+    """Use built-in MYRIAD, or select an explicit library without duplicate registration."""
+    import openvino as ov
+    if plugin_path:
+        import tempfile
+        import xml.etree.ElementTree as ET
+        root = ET.Element('ie')
+        plugins = ET.SubElement(root, 'plugins')
+        path = Path(plugin_path)
+        location = str(path.resolve()) if path.parent != Path('.') else str(path)
+        ET.SubElement(plugins, 'plugin', name='MYRIAD', location=location)
+        # XML registration precedes the compile-time registry in OpenVINO.
+        # This selects one explicit library instead of appending a dispatch candidate.
+        with tempfile.TemporaryDirectory(prefix='roki-ncs2-core-') as directory:
+            config = Path(directory) / 'plugins.xml'
+            ET.ElementTree(root).write(config, encoding='utf-8')
+            return ov.Core(str(config))
+    core = ov.Core()
+    if 'MYRIAD' not in core.get_versions('MYRIAD'):
+        core.register_plugin('libopenvino_ncs2_plugin.so', 'MYRIAD')
+    return core
+
+
 class _NativeDetector:
     def __init__(self, role='other', display=None, *, model_path=None, plugin_path=None):
         self.role, self.display = role, display
@@ -64,9 +87,8 @@ class _NativeDetector:
             if not path.is_file():
                 raise FileNotFoundError(f'NCS2 blob not found: {path}; set ROKI_NCS2_BLOB')
             import openvino as ov
-            self._core = ov.Core()
-            plugin = plugin_path or os.environ.get('ROKI_NCS2_PLUGIN', 'libopenvino_ncs2_plugin.so')
-            self._core.register_plugin(str(plugin), 'MYRIAD')
+            plugin = plugin_path or os.environ.get('ROKI_NCS2_PLUGIN')
+            self._core = create_ncs2_core(plugin)
             properties = {}
             if os.environ.get('NCS2_FIRMWARE_DIR'):
                 properties['NCS2_FIRMWARE_DIR'] = os.environ['NCS2_FIRMWARE_DIR']
@@ -171,8 +193,7 @@ class Neural:
                 self._process = subprocess.Popen(
                     [sys.executable, '-m', 'Soccer.Vision.neural_worker',
                      str(child_socket.fileno()), str(storage.fileno()), str(os.getpid()),
-                     str(path.resolve()), str(plugin_path or env.get('ROKI_NCS2_PLUGIN',
-                                                                    'libopenvino_ncs2_plugin.so'))],
+                     str(path.resolve()), str(plugin_path or env.get('ROKI_NCS2_PLUGIN', ''))],
                     pass_fds=(child_socket.fileno(), storage.fileno()), env=env,
                     stdin=subprocess.DEVNULL)
             child_socket.close()

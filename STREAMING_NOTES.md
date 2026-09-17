@@ -34,7 +34,8 @@ Neural inference uses `Soccer/Vision/neural.py` to supervise a private child
 process running the same current Python executable. Only the child imports
 OpenVINO. `neuro_client.py` retains compatibility aliases. The old Python
 worker/service is removed; the private child requires no service setup. It requires the image-provided native MYRIAD blob
-plugin for OpenVINO 2026.0 and a BGR U8 NHWC YOLOv5 blob with preprocessing
+plugin (the integrated OpenVINO 2026.5 fork, or the original standalone
+2026.0 build) and a BGR U8 NHWC YOLOv5 blob with preprocessing
 embedded. Set `ROKI_NCS2_BLOB`, `ROKI_NCS2_PLUGIN` and `NCS2_FIRMWARE_DIR`.
 Missing model/device/plugin disables the neural detector with a logged error;
 existing strategy readiness checks allow colour-based ball detection.
@@ -72,3 +73,7 @@ uses xywh for OpenCV NMS and selects the strongest valid detection.
   frame ID, rather than presenting every stored coordinate as a fresh estimate.
 - Do not claim NCS2 support from an OpenVINO version string alone; prove device
   enumeration, model compilation and sustained inference on the target image.
+
+Built-in MYRIAD registration is reused. An explicit `ROKI_NCS2_PLUGIN`
+selects one library through a private Core XML configuration, avoiding duplicate
+registration or an unintended dispatch group in the newer OpenVINO fork.

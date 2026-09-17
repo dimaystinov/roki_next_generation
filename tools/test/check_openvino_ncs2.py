@@ -19,10 +19,9 @@ def probe(args, report):
     import openvino as ov
 
     report['openvino'] = ov.get_version()
-    core = ov.Core()
-    if args.plugin:
-        report['stage'] = 'register_plugin'
-        core.register_plugin(str(args.plugin.resolve()), 'MYRIAD')
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from Soccer.Vision.neural import create_ncs2_core
+    core = create_ncs2_core(str(args.plugin.resolve()) if args.plugin else None)
     report['stage'] = 'load_myriad_plugin'
     versions = core.get_versions('MYRIAD')
     report['plugins'] = {name: {'description': version.description, 'build': version.build_number}

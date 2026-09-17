@@ -1,5 +1,9 @@
 # OpenVINO 2026.0 + NCS2: передача разработчику образа
 
+> Этот документ описывает исходный standalone-комплект для **2026.0**.
+> Для нового образа доступен [интегрированный форк OpenVINO 2026.5](https://github.com/dimaystinov/openvino).
+> Runtime и плагин разных версий не смешивать; см. [главную инструкцию](https://github.com/dimaystinov/roki_next_generation/tree/main/buildroot).
+
 Реализован **нативный плагин MYRIAD для нового OpenVINO**, импортирующий
 MYRIAD `.blob` формата 6.0. Исходники, CMake и тесты: `openvino-ncs2/`.
 Инструкция сборки: `openvino-ncs2/README_RU.md`.

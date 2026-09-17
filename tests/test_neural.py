@@ -56,7 +56,7 @@ def test_native_detector_reuses_request_and_stops_after_backend_error(tmp_path, 
     compiled = NS(inputs=[input_port],outputs=[output_port],input=lambda: input_port,
                   output=lambda: output_port,create_infer_request=Mock(return_value=request))
     core = NS(register_plugin=Mock(),import_model=Mock(return_value=compiled))
-    monkeypatch.setitem(sys.modules,'openvino',NS(Core=lambda: core,Type=NS(u8='u8',f16='f16',f32='f32')))
+    monkeypatch.setitem(sys.modules,'openvino',NS(Core=lambda *args: core,Type=NS(u8='u8',f16='f16',f32='f32')))
     neural = _NativeDetector(model_path=path,plugin_path='/test/plugin.so')
     assert neural.is_ready()
     frame = np.zeros((650,800,3),np.uint8)

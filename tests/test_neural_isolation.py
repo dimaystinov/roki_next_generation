@@ -15,6 +15,8 @@ import numpy as np
 from types import SimpleNamespace as NS
 Type = NS(u8='u8', f16='f16', f32='f32')
 class Core:
+    def __init__(self, config=None): pass
+    def get_versions(self, name): return {}
     def register_plugin(self, *args): pass
     def import_model(self, stream, *args):
         mode = stream.read().decode()
